@@ -8,7 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <title>Kedi AR Projesi</title>
+    <title>Kedi AR Projesi (Dikey Tarama)</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     
@@ -17,11 +17,13 @@
         margin: 0; 
         overflow: hidden; 
         box-sizing: border-box;
-        border: 8px solid darkblue; 
+        border: none; /* Koyu mavi çerçeve kaldırıldı */
         height: 100vh;
       }
+      /* MindAR varsayılan UI'ları gizlenir */
       .mindar-ui-overlay { display: none !important; }
 
+      /* Sürüm Günlükleri Paneli */
       #version-logs {
         position: absolute;
         top: 15px;
@@ -41,78 +43,158 @@
       #version-logs ul { list-style: none; padding: 0; margin: 0; }
       #version-logs li { margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
 
+      /* Başlangıç Ekranı */
       #click-screen {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 139, 0.4);
-        color: white;
+        background-color: darkblue; 
+        color: white; 
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 10000; 
         font-family: sans-serif;
-        font-weight: bold;
-        text-align: center;
         cursor: pointer;
+        transition: opacity 0.5s ease-out; 
+      }
+      
+      #click-screen h1 {
+        border: 4px solid white;
+        padding: 20px 40px;
+        border-radius: 20px;
+        text-align: center;
+        font-size: 24px;
+        box-shadow: 0 0 15px rgba(255,255,255,0.5);
+      }
+
+      /* ÖZEL TARAMA EKRANI */
+      #scanning-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        display: none; /* Başlangıçta gizli, mavi ekran tıklandıktan sonra açılacak */
+        justify-content: center; align-items: center;
+        pointer-events: none; /* Kameraya tıklamayı engellememesi için */
+        z-index: 5000; /* Günlüğün altında, kameranın üstünde */
+      }
+
+      /* Dikey Tarama Çerçevesi */
+      #scanning-overlay .corners {
+        position: relative;
+        width: 60vw; /* Telefon ekranının %60 genişliği */
+        height: 106.8vw; /* Standart 9:16 oranı (60 * 1.78) */
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 10px;
+      }
+
+      /* Tarama Köşeleri */
+      #scanning-overlay .corners::before,
+      #scanning-overlay .corners::after,
+      #scanning-overlay .corners .corner-btm-l,
+      #scanning-overlay .corners .corner-btm-r {
+        content: ''; position: absolute; width: 30px; height: 30px;
+        border-color: #fff; border-style: solid;
+      }
+      /* Sol Üst */
+      #scanning-overlay .corners::before { top: -5px; left: -5px; border-width: 5px 0 0 5px; }
+      /* Sağ Üst */
+      #scanning-overlay .corners::after { top: -5px; right: -5px; border-width: 5px 5px 0 0; }
+      /* Sol Alt */
+      #scanning-overlay .corner-btm-l { bottom: -5px; left: -5px; border-width: 0 0 5px 5px; }
+      /* Sağ Alt */
+      #scanning-overlay .corner-btm-r { bottom: -5px; right: -5px; border-width: 0 5px 5px 0; }
+
+      /* Tarama Çizgisi Animasyonu */
+      #scanning-overlay .scan-line {
+        position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+        background-color: #fff;
+        opacity: 0.8;
+        box-shadow: 0 0 10px 3px rgba(255,255,255,0.7);
+        animation: scan 2s linear infinite;
+      }
+      @keyframes scan {
+        0% { top: 0; opacity: 0.3; }
+        10% { opacity: 0.8; }
+        50% { opacity: 0.8; }
+        90% { opacity: 0.8; }
+        100% { top: 100%; opacity: 0.3; }
       }
     </style>
 
     <script>
-      // Video Oynatma Mantığı
       AFRAME.registerComponent('video-handler', {
         init: function () {
-          this.toggle = false;
           this.vid = document.querySelector("#kediVideo");
-        },
-        tick: function () {
-          if (this.el.object3D.visible == true) {
-            if (!this.toggle) {
-              this.toggle = true;
-              this.vid.play();
-            }
-          } else {
-            this.toggle = false;
+          const scanningOverlay = document.querySelector('#scanning-overlay');
+          
+          this.el.addEventListener('targetFound', () => {
+            console.log("Hedef Bulundu!");
+            this.vid.play().catch(err => console.error("Video oynatılamadı:", err));
+            // Resmi bulduğunda tarama ekranını gizle
+            if(scanningOverlay) scanningOverlay.style.display = 'none';
+          });
+
+          this.el.addEventListener('targetLost', () => {
+            console.log("Hedef Kaybedildi!");
             this.vid.pause();
-          }
+            // Resmi kaybettiğinde tarama ekranını geri getir
+            if(scanningOverlay) scanningOverlay.style.display = 'flex';
+          });
         }
+      });
+
+      document.addEventListener("DOMContentLoaded", function() {
+        const clickScreen = document.querySelector('#click-screen');
+        const scanningOverlay = document.querySelector('#scanning-overlay');
+        const video = document.querySelector('#kediVideo');
+
+        clickScreen.addEventListener('click', function() {
+          clickScreen.style.opacity = '0';
+          setTimeout(() => { 
+              clickScreen.style.display = 'none'; 
+              // Mavi ekran kaybolduğunda dikey tarama ekranını aç
+              if(scanningOverlay) scanningOverlay.style.display = 'flex';
+          }, 500);
+          
+          video.muted = false; 
+          video.play().then(() => { video.pause(); }).catch((error) => { console.log("Medya engeli:", error); });
+        });
       });
     </script>
   </head>
   <body>
 
-    <div id="click-screen" onclick="this.style.display='none'; document.querySelector('#kediVideo').play(); document.querySelector('#kediVideo').pause();">
+    <div id="click-screen">
       <h1>BAŞLATMAK İÇİN <br> EKRANA DOKUN</h1>
     </div>
 
     <div id="version-logs">
       <h3>Sürüm Günlükleri</h3>
       <ul>
-        <li><strong>v1.5.0:</strong> "Tıkla-Başlat" katmanı eklendi. Video tetikleme mantığı tick-loop'a taşındı. (Güncel)</li>
-        <li><strong>v1.4.0:</strong> Custom Component denendi.</li>
-        <li><strong>v1.3.2:</strong> Dosya isimleri (kedi.mp4) düzeltildi.</li>
+        <li><strong>v1.8.0:</strong> Koyu mavi dış çerçeve kaldırıldı. Dikey tarama animasyonlu tarama ekranı eklendi. (Güncel)</li>
+        <li><strong>v1.7.0:</strong> Hedef ve video dikey (9:16) formata çevirildi.</li>
       </ul>
     </div>
 
+    <div id="scanning-overlay">
+        <div class="corners">
+            <div class="corner-btm-l"></div>
+            <div class="corner-btm-r"></div>
+            <div class="scan-line"></div>
+        </div>
+    </div>
+
     <a-scene mindar-image="imageTargetSrc: ./kedi_proje/targets.mind; autoStart: true; uiLoading: no; uiScanning: no;" 
-             color-space="sRGB" 
-             renderer="colorManagement: true, physicallyCorrectLights" 
-             vr-mode-ui="enabled: false" 
-             device-orientation-permission-ui="enabled: false">
+             color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
+             vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video id="kediVideo" 
-               src="./kedi_proje/kedi.mp4" 
-               preload="auto" 
-               loop="true" 
-               crossorigin="anonymous" 
-               playsinline 
-               webkit-playsinline></video>
+        <video id="kediVideo" src="./kedi_proje/kedi.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline="true" webkit-playsinline="true" muted></video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <a-video src="#kediVideo" position="0 0 0" width="1" height="0.56" rotation="0 0 0"></a-video>
+        <a-video src="#kediVideo" position="0 0 0" width="1" height="1.78" rotation="0 0 0"></a-video>
       </a-entity>
     </a-scene>
 
