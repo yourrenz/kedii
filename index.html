@@ -12,7 +12,6 @@
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      /* Ekranın genel ayarları ve Koyu Mavi Çerçeve */
       body { 
         margin: 0; 
         overflow: hidden; 
@@ -21,14 +20,12 @@
         height: 100vh;
       }
       
-      /* MindAR varsayılan tarama animasyonunu gizlemek için ek stil */
       .mindar-ui-overlay { display: none !important; }
 
-      /* Sürüm Günlükleri Paneli Stili (Sağ Üst Köşeye Taşındı) */
       #version-logs {
         position: absolute;
         top: 15px;
-        right: 15px; /* Burası değişti: left yerine right kullanıldı */
+        right: 15px;
         z-index: 9999; 
         background-color: rgba(255, 255, 255, 0.85); 
         border: 4px solid darkblue; 
@@ -72,11 +69,13 @@
     <div id="version-logs">
       <h3>Sürüm Günlükleri</h3>
       <ul>
-        <li><strong>v1.3.0:</strong> Sürüm günlükleri sağ üst köşeye taşındı. Mobil cihazlardaki önbellek (cache) sorunu giderildi. (Güncel)</li>
-        <li><strong>v1.2.1:</strong> Video dosya adı "Kedi Uyanış.mp4" olarak güncellendi.</li>
+        <li><strong>v1.3.2:</strong> Video dosya adındaki Türkçe karakter (ı) sorunu noktalı (i) ile çözüldü. (Güncel)</li>
+        <li><strong>v1.3.1:</strong> Video dosya adı ve yolu düzeltildi.</li>
+        <li><strong>v1.3.0:</strong> Sürüm günlükleri sağ üst köşeye taşındı. Mobil cihazlardaki önbellek sorunu giderildi.</li>
+        <li><strong>v1.2.1:</strong> Video dosya adı güncellendi.</li>
         <li><strong>v1.2.0:</strong> Arayüze koyu mavi çerçeve ve sürüm günlükleri paneli eklendi.</li>
         <li><strong>v1.1.0:</strong> AR yükleme ikonları ve tarama işaretleri gizlendi.</li>
-        <li><strong>v1.0.0:</strong> Kedi.jpeg görseli hedeflendi ve AR video sistemi eklendi. İlk yayın.</li>
+        <li><strong>v1.0.1:</strong> Kedi.jpeg görseli hedeflendi ve AR video sistemi eklendi.</li>
       </ul>
     </div>
 
@@ -88,7 +87,7 @@
       
       <a-assets>
         <video id="kediVideo" 
-               src="./kedi_proje/Kedi Uyanış.mp4?v=1.3.0" 
+               src="./kedi_proje/kedi.mp4" 
                preload="auto" 
                loop 
                crossorigin="anonymous" 
