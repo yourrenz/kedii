@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <title>Kedi AR Projesi (Test Modu)</title>
+    <title>Kedi AR Projesi</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     
@@ -75,13 +75,11 @@
           const scanningOverlay = document.querySelector('#scanning-overlay');
           
           this.el.addEventListener('targetFound', () => {
-            console.log("Hedef Bulundu!");
             this.vid.play().catch(err => console.error("Video oynatılamadı:", err));
             if(scanningOverlay) scanningOverlay.style.display = 'none';
           });
 
           this.el.addEventListener('targetLost', () => {
-            console.log("Hedef Kaybedildi!");
             this.vid.pause();
             if(scanningOverlay) scanningOverlay.style.display = 'flex';
           });
@@ -115,9 +113,9 @@
     <div id="version-logs">
       <h3>Sürüm Günlükleri</h3>
       <ul>
-        <li><strong>v1.8.1:</strong> Hata tespiti için videonun arkasına kırmızı test katmanı eklendi. (Güncel)</li>
+        <li><strong>v1.8.2:</strong> Kırmızı test katmanı kaldırıldı. Final sürümüne geçildi. (Güncel)</li>
+        <li><strong>v1.8.1:</strong> Hata tespiti sağlandı, hedefin bulunduğu onaylandı.</li>
         <li><strong>v1.8.0:</strong> Dikey tarama animasyonu eklendi.</li>
-        <li><strong>v1.7.0:</strong> Dikey (9:16) formata geçildi.</li>
       </ul>
     </div>
 
@@ -140,9 +138,6 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        
-        <a-plane color="red" position="0 0 -0.01" width="1" height="1.78"></a-plane>
-        
         <a-video src="#kediVideo" position="0 0 0" width="1" height="1.78" rotation="0 0 0"></a-video>
       </a-entity>
     </a-scene>
